@@ -122,7 +122,7 @@ class VentaCriptomonedaController extends VentaCriptomoneda implements IApiUse
     $pdf->writeHTML($html);
     $pdfContent = $pdf->Output('', 'S');
     $response = $response->withHeader('Content-Type', 'application/pdf');
-    $response = $response->withHeader('Content-Disposition', 'inline; filename="ventascriptomonedas.pdf"');
+    $response = $response->withHeader('Content-Disposition', 'inline; filename="ventascriptomonedas' . $fecha . '.pdf"');
     $response->getBody()->write($pdfContent);
     return $response;
   }
