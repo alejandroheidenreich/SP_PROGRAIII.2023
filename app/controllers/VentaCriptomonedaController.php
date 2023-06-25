@@ -68,7 +68,13 @@ class VentaCriptomonedaController extends VentaCriptomoneda implements IApiUse
   public static function TraerTodosPorMoneda($request, $response, $args)
   {
     $ventascripto = VentaCriptomoneda::obtenerTodosPorMoneda($args['moneda']);
-    $payload = json_encode($ventascripto);
+
+    if (count($ventascripto) > 0) {
+      $payload = json_encode($ventascripto);
+    } else {
+      $payload = json_encode(array("mensaje" => "No existen ventas de esa Criptomoneda"));
+    }
+
 
     $response->getBody()->write($payload);
     return $response
@@ -88,6 +94,38 @@ class VentaCriptomonedaController extends VentaCriptomoneda implements IApiUse
       ->withHeader('Content-Type', 'application/json');
   }
 
+  public static function TraerTodosPDF($request, $response, $args)
+  {
+
+    $lista = VentaCriptomoneda::obtenerTodos();
+    $pdf = new TCPDF();
+    $pdf->SetCreator('Criptomonedas');
+    $pdf->SetAuthor('Lindo Servidor');
+    $pdf->SetTitle('Ventas de criptomonedas');
+    $pdf->SetMargins(10, 10, 10);
+
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', '', 12);
+
+    $fecha = date_format(new DateTime(), 'd/m/Y');
+    $html = '<style>table { border-collapse: collapse; text-align: center;} th, td { border: 1px solid black; padding: 5px; }</style>';
+    $html .= '<h1>Listado de todas las ventas</h1>';
+    $html .= '<h2>Creado: ' . $fecha . ' </h2>';
+    $html .= '<table>';
+
+    $html .= '<tr><th>' . 'ID' . '</th><th>' . 'FECHA' . '</th><th>' . 'CANTIDAD' . '</th><th>' . 'IDCRIPTO' . '</th><th>' . 'IDCLIENTE' . '</th><th>' . 'IMAGEN' . '</th></tr>';
+    foreach ($lista as $v) {
+      $html .= '<tr><td>' . $v->id . '</td><td>' . $v->fecha . '</td><td>' . $v->cantidad . '</td><td>' . $v->idCripto . '</td><td>' . $v->idCliente . '</td><td>' . $v->imagenVenta . '</td></tr>';
+    }
+    $html .= '</table>';
+
+    $pdf->writeHTML($html);
+    $pdfContent = $pdf->Output('', 'S');
+    $response = $response->withHeader('Content-Type', 'application/pdf');
+    $response = $response->withHeader('Content-Disposition', 'inline; filename="ventascriptomonedas.pdf"');
+    $response->getBody()->write($pdfContent);
+    return $response;
+  }
   public static function ModificarUno($request, $response, $args)
   {
 

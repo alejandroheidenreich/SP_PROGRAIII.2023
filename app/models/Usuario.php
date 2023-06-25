@@ -65,7 +65,7 @@ class Usuario implements IPersistencia
     public static function obtenerUnoPorID($id)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mail, tipo, clave FROM usuarios WHERE id = :id AND fechaBaja IS NULL");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mail, tipo, clave FROM usuarios WHERE id = :id");
         $consulta->bindValue(':id', $id, PDO::PARAM_STR);
         $consulta->execute();
 
@@ -75,7 +75,7 @@ class Usuario implements IPersistencia
     public static function modificar($usuario)
     {
         $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET mail = :mail, tipo = :tipo, clave = :clave WHERE id = :id AND fechaBaja IS NULL");
+        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET mail = :mail, tipo = :tipo, clave = :clave WHERE id = :id");
 
         $consulta->bindValue(':mail', $usuario->mail, PDO::PARAM_STR);
         $consulta->bindValue(':tipo', $usuario->tipo, PDO::PARAM_STR);
@@ -87,10 +87,8 @@ class Usuario implements IPersistencia
     public static function borrar($id)
     {
         $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET fechaBaja = :fechaBaja WHERE id = :id AND fechaBaja IS NULL");
-        $fecha = new DateTime(date("d-m-Y"));
+        $consulta = $objAccesoDato->prepararConsulta("DELETE FROM usuarios WHERE id = :id");
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-        $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
         $consulta->execute();
     }
 

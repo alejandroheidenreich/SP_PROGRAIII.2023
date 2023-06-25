@@ -3,6 +3,8 @@
 use Slim\Http\Request;
 use Slim\Http\Response;
 
+
+
 require_once './models/Criptomoneda.php';
 require_once './interfaces/IApiUse.php';
 
@@ -65,6 +67,7 @@ class CriptomonedaController extends Criptomoneda implements IApiUse
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
+
 
   public static function ModificarUno($request, $response, $args)
   {

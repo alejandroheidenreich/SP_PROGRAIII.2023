@@ -10,7 +10,8 @@ use Slim\Routing\RouteCollectorProxy;
 use Slim\Routing\RouteContext;
 use Slim\Cookie\Cookie;
 use Slim\Handlers\Strategies\RequestResponseArgs;
-use Slim\Middleware\MethodOverrideMiddleware;
+use TCPDF\TCPDF;
+
 
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -35,7 +36,7 @@ $dotenv->safeLoad();
 $app = AppFactory::create();
 //$app->setBasePath('/app');
 
-$app->add(MethodOverrideMiddleware::class);
+$app->addRoutingMiddleware();
 
 // Add error middleware
 $errorMiddleware = function ($request, $exception, $displayErrorDetails) use ($app) {
@@ -52,16 +53,16 @@ $app->addErrorMiddleware(true, true, true)
   ->setDefaultErrorHandler($errorMiddleware);
 
 $app->addBodyParsingMiddleware();
-$app->addBodyParsingMiddleware();
+
 
 // ABM Routes
 // Usuarios
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
   $group->get('[/]', \UsuarioController::class . '::TraerTodos')->add(\Autentificador::class . '::ValidarAdmin');
-  //$group->get('/{usuario}', \UsuarioController::class . '::TraerUno');
+  $group->get('/{id}', \UsuarioController::class . '::TraerUno')->add(\Autentificador::class . '::ValidarAdmin');
   $group->post('[/]', \UsuarioController::class . '::CargarUno')->add(\Validador::class . '::ValidarNuevoUsuario')->add(\Autentificador::class . '::ValidarAdmin');
-  //$group->put('/{id}', \UsuarioController::class . '::ModificarUno');
-  //$group->delete('/{id}', \UsuarioController::class . '::BorrarUno');
+  $group->put('/{id}', \UsuarioController::class . '::ModificarUno')->add(\Autentificador::class . '::ValidarAdmin');
+  $group->delete('/{id}', \UsuarioController::class . '::BorrarUno')->add(\Autentificador::class . '::ValidarAdmin');
 });
 //Criptomoneda
 $app->group('/criptomonedas', function (RouteCollectorProxy $group) {
@@ -78,6 +79,7 @@ $app->group('/ventascriptomonedas', function (RouteCollectorProxy $group) {
   $group->get('[/]', \VentaCriptomonedaController::class . '::TraerTodos');
   //$group->get('/nacionalidad[/]', \CriptomonedaController::class . '::TraerTodosPorNacionalidad');
   $group->get('/{nacionalidad}/{fechaInicio}_{fechaFinal}[/]', \VentaCriptomonedaController::class . '::TraerTodosPorNacionalidadFecha');
+  $group->get('/download/pdf', \VentaCriptomonedaController::class . '::TraerTodosPDF');
   $group->get('/{moneda}[/]', \VentaCriptomonedaController::class . '::TraerTodosPorMoneda')->add(\Autentificador::class . '::ValidarAdmin');
   $group->post('[/]', \VentaCriptomonedaController::class . '::CargarUno')->add(\Validador::class . '::ValidarCantidad')->add(\Validador::class . '::ValidarIDCripto')->add(\Autentificador::class . '::ValidarCliente');
 });
