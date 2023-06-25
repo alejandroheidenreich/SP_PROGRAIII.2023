@@ -90,18 +90,19 @@ class Criptomoneda implements IPersistencia
         $consulta->bindValue(':nombre', $cripto->nombre, PDO::PARAM_STR);
         $consulta->bindValue(':foto', $cripto->foto, PDO::PARAM_STR);
         $consulta->bindValue(':nacionalidad', $cripto->nacionalidad, PDO::PARAM_STR);
-        $consulta->bindValue(':id', $cripto->nacionalidad, PDO::PARAM_INT);
+        $consulta->bindValue(':id', $cripto->id, PDO::PARAM_INT);
         $consulta->execute();
     }
 
     public static function borrar($id)
     {
+        $cripto = Criptomoneda::obtenerUno($id);
+        unlink($cripto->imagenVenta);
         $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE criptomonedas WHERE id = :id");
-        $fecha = new DateTime(date("d-m-Y"));
+        $consulta = $objAccesoDato->prepararConsulta("DELETE FROM criptomonedas WHERE id = :id");
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-        $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
         $consulta->execute();
     }
+
 
 }

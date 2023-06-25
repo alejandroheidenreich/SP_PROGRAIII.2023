@@ -68,30 +68,39 @@ class CriptomonedaController extends Criptomoneda implements IApiUse
 
   public static function ModificarUno($request, $response, $args)
   {
-
     $id = $args['id'];
+    $cripto = Criptomoneda::obtenerUno($id);
 
-    $usuario = Usuario::obtenerUnoPorID($id);
-
-    if ($usuario != false) {
+    if ($cripto != false) {
+      $uploadedFiles = $request->getUploadedFiles();
       $parametros = $request->getParsedBody();
 
       $actualizado = false;
-      if (isset($parametros['mail'])) {
+
+      if (isset($parametros['precio'])) {
         $actualizado = true;
-        $usuario->mail = $parametros['mail'];
+        $cripto->precio = $parametros['precio'];
       }
-      if (isset($parametros['clave'])) {
+      if (isset($parametros['nombre'])) {
         $actualizado = true;
-        $usuario->clave = password_hash($parametros['clave'], PASSWORD_DEFAULT);
+        $cripto->nombre = $parametros['nombre'];
       }
-      if (isset($parametros['tipo'])) {
+      if (isset($parametros['nacionalidad'])) {
         $actualizado = true;
-        $usuario->tipo = $parametros['tipo'];
+        $cripto->tipo = $parametros['nacionalidad'];
+      }
+
+      if (isset($uploadedFiles['foto'])) {
+        $actualizado = true;
+        $fotoVieja = explode('./imgs_cripto/', $cripto->foto);
+        rename($cripto->foto, './imgs_cripto/Backup/' . $fotoVieja[1]);
+
+        $targetPath = './imgs_cripto/' . $cripto->nombre . '.jpg';
+        $uploadedFiles['foto']->moveTo($targetPath);
       }
 
       if ($actualizado) {
-        Usuario::modificar($usuario);
+        Criptomoneda::modificar($cripto);
         $payload = json_encode(array("mensaje" => "Usuario modificado con exito"));
       } else {
         $payload = json_encode(array("mensaje" => "Usuario no modificar por falta de campos"));
@@ -108,15 +117,16 @@ class CriptomonedaController extends Criptomoneda implements IApiUse
 
   public static function BorrarUno($request, $response, $args)
   {
-    $usuarioId = $args['id'];
+    $id = $args['id'];
 
-    if (Usuario::obtenerUnoPorID($usuarioId)) {
+    if (Criptomoneda::obtenerUno($id)) {
 
-      Usuario::borrar($usuarioId);
-      $payload = json_encode(array("mensaje" => "Usuario borrado con exito"));
+      Criptomoneda::borrar($id);
+      $payload = json_encode(array("mensaje" => "Criptomoneda borrada con exito"));
+
     } else {
 
-      $payload = json_encode(array("mensaje" => "ID no coincide con un usuario"));
+      $payload = json_encode(array("mensaje" => "ID no coincide con una criptomoneda"));
     }
 
     $response->getBody()->write($payload);

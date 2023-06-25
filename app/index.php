@@ -9,6 +9,8 @@ use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Routing\RouteContext;
 use Slim\Cookie\Cookie;
+use Slim\Handlers\Strategies\RequestResponseArgs;
+use Slim\Middleware\MethodOverrideMiddleware;
 
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -33,6 +35,8 @@ $dotenv->safeLoad();
 $app = AppFactory::create();
 //$app->setBasePath('/app');
 
+$app->add(MethodOverrideMiddleware::class);
+
 // Add error middleware
 $errorMiddleware = function ($request, $exception, $displayErrorDetails) use ($app) {
   $statusCode = 500;
@@ -43,12 +47,12 @@ $errorMiddleware = function ($request, $exception, $displayErrorDetails) use ($a
   return $response->withHeader('Content-Type', 'application/json');
 };
 
+
 $app->addErrorMiddleware(true, true, true)
   ->setDefaultErrorHandler($errorMiddleware);
 
 $app->addBodyParsingMiddleware();
-
-
+$app->addBodyParsingMiddleware();
 
 // ABM Routes
 // Usuarios
@@ -65,6 +69,9 @@ $app->group('/criptomonedas', function (RouteCollectorProxy $group) {
   $group->get('/nacionalidad[/]', \CriptomonedaController::class . '::TraerTodosPorNacionalidad');
   $group->get('/{id}', \CriptomonedaController::class . '::TraerUno')->add(\Autentificador::class . '::ValidarCliente');
   $group->post('[/]', \CriptomonedaController::class . '::CargarUno')->add(\Autentificador::class . '::ValidarAdmin');
+  $group->post('/{id}', \CriptomonedaController::class . '::ModificarUno')->add(\Autentificador::class . '::ValidarAdmin');
+  //$group->put('/{id}', \CriptomonedaController::class . '::ModificarUno')->add(\Autentificador::class . '::ValidarAdmin');
+  $group->delete('/{id}', \CriptomonedaController::class . '::BorrarUno')->add(\Autentificador::class . '::ValidarAdmin');
 });
 // VentaCriptomoneda
 $app->group('/ventascriptomonedas', function (RouteCollectorProxy $group) {
@@ -74,8 +81,6 @@ $app->group('/ventascriptomonedas', function (RouteCollectorProxy $group) {
   $group->get('/{moneda}[/]', \VentaCriptomonedaController::class . '::TraerTodosPorMoneda')->add(\Autentificador::class . '::ValidarAdmin');
   $group->post('[/]', \VentaCriptomonedaController::class . '::CargarUno')->add(\Validador::class . '::ValidarCantidad')->add(\Validador::class . '::ValidarIDCripto')->add(\Autentificador::class . '::ValidarCliente');
 });
-
-
 
 // LOG IN 
 $app->group('/login', function (RouteCollectorProxy $group) {
